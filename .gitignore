@@ -1,0 +1,4 @@
+.direnv/
+.envrc
+movie_rec/
+.DS_Store

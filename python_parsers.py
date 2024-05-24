@@ -1,6 +1,13 @@
 import ast
 from collections import deque
-from pprint import pprint
+from constants import FUNCS_TO_INGORE
+import re
+
+def to_remove(func_str):
+    for func in FUNCS_TO_INGORE:
+        if re.fullmatch(func, func_str):
+            return True
+    return False
 
 class FuncCallVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -33,44 +40,49 @@ def get_func_calls(tree):
             callvisitor.visit(node.func)
             func_calls.append((callvisitor.name))
 
-    return list(set(func_calls))
+    func_calls = list(set(func_calls))
+    func_calls = [func for func in func_calls if not to_remove(func)]
+
+    return func_calls
 
 
 def get_all_funcs(path):
-    funcs = []
+    funcs = {}
     with open(path) as f:    
         tree = ast.parse(f.read())
-        
         for node in tree.body:
             if isinstance(node, ast.FunctionDef):
-                funcs.append((node.name, get_func_calls(node)))
+                funcs[node.name] = {
+                    'function_str': ast.unparse(node),
+                    'dependancies': get_func_calls(node),
+                }
+                
     return funcs    
 
 
 def get_all_imports(path):
-    imports = []
+    libs = []
+    import_stmts = []
     alias_map = {}
     with open(path) as f:    
         tree = ast.parse(f.read())
         
         for node in ast.walk(tree):
+
             if isinstance(node, ast.Import):
+                import_stmts.append(ast.unparse(node))
                 for import_alias in node.names:
-                    imports.append(import_alias.name)                        
+                    libs.append(import_alias.name)                        
                     if import_alias.asname: 
                         alias_map[import_alias.asname] = import_alias.name
-                    
+            
             if isinstance(node, ast.ImportFrom):
+                import_stmts.append(ast.unparse(node))
                 module = node.module
                 for import_alias in node.names:                    
-                    imports.append(f'{module}.{import_alias.name}')                    
+                    libs.append(f'{module}.{import_alias.name}')                    
                     if import_alias.asname:                     
                         alias_map[import_alias.asname] = import_alias.name
+                
                     
-    return imports, alias_map
-
-# print(get_all_funcs('./movie_rec/collaborative_filtering.py'))
-# print(get_all_imports('./movie_rec/collaborative_filtering.py'))
-
-# pprint(get_all_imports('utils.py'))
-pprint(get_all_funcs('utils.py'))
+    return libs, alias_map, import_stmts

@@ -6,8 +6,8 @@ SYSTEM_PROMPT = 'You are an intellighent AI programming assistant. You are fluen
 
 
 INSTRUCTIONS = '''\
-Generate documentation for the python function given below.
-The documentation should contain:
+- Generate documentation for the python function given below.
+- The documentation should contain:
 - Docstring
     - A docstring with a single line description summarizing the function
     - Short descriptions of each input parameter
@@ -15,41 +15,39 @@ The documentation should contain:
 - Inline comments
     - Short inline comments for blocks of code that are hard to understand
     - Only include where the code functionality is not obvious
-
-You also have access to reference documentation for sub-functions and sub-classes used in the primary function.
-These should be used for enhanced context on 
-
-Do not change the original function, only add comments wherever necessary.
-Reply with the entire function with relevant documentation wherever neccessary
-'''
+- You also have access to reference documentation for sub-functions and sub-classes used in the primary function. These should be used for enhanced context for better documentation of the original function.
+- Preserve all existing documentation of the original function.
+- Do not change the original function, only add comments wherever necessary.
+- Use the same variables and logic, only add comments
+- Only reply with the documented function within ``` tags.'''
 
 
 FUNCTION_DOC_GENERATION_PROMPT = lambda func, ref_docs: f'''\
-## Guidelines
+### Guidelines
 {INSTRUCTIONS}
 
-## Original function 
-```
+### Original function 
+```python
 {func}
 ```
 
-## Reference documentation
+### Reference documentation
 {format_docs(ref_docs)}
 
-## Original function with documentation
-```
+### Original function with documentation
+```python
 '''
 
 
 SUMMARIZE_DOC_PROMPT = lambda func, doc: f'''\
-## Guidelines
+### Guidelines
 Summarize the given function documentation in a single line.
 Make sure that the key nuances and overall meaning of the documentation are captured in the summary
-Reply with only the summarized documentation
+Ony Reply with only the summarized documentation followed by <STOP>
 
-## Original documentation
+### Original documentation
 Function: {func}
 {doc}
 
-## Summarized documentation
+### Summarized documentation
 '''

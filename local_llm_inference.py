@@ -1,5 +1,11 @@
 from constants import PORT, MAX_TOKENS, TEMPERATURE,STOP_TOKENS
+import logging
 import requests
+
+def clean_output(out):
+    for tok in STOP_TOKENS:
+        out = out.split(tok)[0].strip()
+    return out.strip()
 
 def get_local_llm_output(system_prompt, prompt):
     r = requests.post(
@@ -16,11 +22,11 @@ def get_local_llm_output(system_prompt, prompt):
         }
     )
     
-    status = r.status_code
+    # status = r.status_code
     output = '-'
     try:
         output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()
-    except:
-        print('Error')
+    except Exception as e:
+        logging.error(f'Error while accessing http://localhost:{PORT}/v1/chat/completions: {e}')
         
-    return output, status
+    return clean_output(output)

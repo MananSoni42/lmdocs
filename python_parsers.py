@@ -1,17 +1,20 @@
 import ast
 from collections import deque
-from constants import FUNCS_TO_INGORE
+from constants import CALLS_TO_INGORE
 import re
 from itertools import zip_longest
 from typing import Union
 from get_function_docs import CodeData
 import logging
+from pprint import pprint
 import copy
 
+from utils import to_file
 
-def to_remove(func_str):
-    for func in FUNCS_TO_INGORE:
-        if func.lower().strip() == func_str.lower().strip() or re.fullmatch(f'[^\W0-9]\w*.{func}', func_str):
+
+def to_remove(call_str):
+    for call in CALLS_TO_INGORE:
+        if call.lower().strip() == call_str.lower().strip() or re.fullmatch(f'[^\W0-9]\w*.{call}', call_str):
             return True
     return False
 
@@ -53,23 +56,6 @@ def get_func_calls(tree):
     return func_calls
 
 
-def get_all_funcs(path, funcs):
-    with open(path) as f:    
-        tree = ast.parse(f.read())
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef):
-                funcs.add(
-                    node.name,
-                    {
-                        CodeData.CODE: ast.unparse(node),
-                        CodeData.NODE: node,
-                        CodeData.DEP: get_func_calls(node),
-                        CodeData.CUSTOM: True,
-                        CodeData.PATH: path,
-                    }
-                )
-
-
 def get_all_imports(path):
     libs = []
     import_stmts = []
@@ -99,34 +85,34 @@ def get_all_imports(path):
 
 
 def parse_commented_function(func_name, func_str):
-    try:
-        func_str = func_str.split('```python')[1]
-    except IndexError:
-        func_str = func_str.split('```python')[0]
+    orig_func_str = copy.copy(func_str)
         
-    func_str = func_str.split('```')[0]
+    func_str = func_str.strip('```')
+    func_str = func_str.split('```\n')[0]
     func_str = func_str.lstrip().strip()
     func_str = func_str.lstrip('\n').strip('\n')
     func_str = func_str.lstrip().strip()
     
-    ast_func, success = '', False
+    ast_code, success, reason = None, False, None
+    # to_file('./debug.func.log', orig_func_str, func_str)
 
     try:
-        ast_func = ast.parse(func_str)
+        ast_code = ast.parse(func_str)
         success = True
     except Exception as e:
-        logging.error(f'Could not parse function {func_name}: `{e}')
+        reason = f'Parse error `({repr(e)[:10]}...)`' 
         
-    if not isinstance(ast_func, ast.FunctionDef):
-        for node in ast.walk(ast_func):
-            if isinstance(node, ast.FunctionDef):
-                ast_func = node
+    if ast_code and not (isinstance(ast_code, ast.FunctionDef) or isinstance(ast_code, ast.ClassDef)):
+        for node in ast_code.body:
+            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef): 
+                ast_code = node
                 break
             
-    if not isinstance(ast_func, ast.FunctionDef):
+    if  ast_code and not (isinstance(ast_code, ast.FunctionDef) or isinstance(ast_code, ast.ClassDef)):
         success = False
+        reason = f'Type error `({type(ast_code)})`' 
         
-    return func_str, ast_func, success
+    return func_str, ast_code, success, reason
 
 
 def remove_docstring(func_node):    
@@ -152,3 +138,44 @@ def same_ast(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list
         return all(same_ast(n1, n2) for n1, n2 in zip_longest(node1, node2))
     else:
         return node1 == node2
+
+
+def get_all_calls(path, funcs):
+    with open(path) as f:    
+        tree = ast.parse(f.read())
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
+
+                extra_deps = []
+                if isinstance(node, ast.ClassDef):
+                    for child_node in node.body:
+                        if isinstance(child_node, ast.FunctionDef):
+                            extra_deps.append(child_node.name)
+                            funcs.add(
+                                child_node.name,
+                                {
+                                    CodeData.CODE: ast.unparse(child_node),
+                                    CodeData.NODE: child_node,
+                                    CodeData.DEP: get_func_calls(child_node),
+                                    CodeData.CUSTOM: True,
+                                    CodeData.PATH: path,
+                                }
+                            )
+
+                funcs.add(
+                    node.name,
+                    {
+                        CodeData.CODE: ast.unparse(node),
+                        CodeData.NODE: node,
+                        CodeData.DEP: get_func_calls(node),
+                        CodeData.CUSTOM: True,
+                        CodeData.PATH: path,
+                    }
+                )
+                                
+
+if __name__ == '__main__':
+    funcs = CodeData()
+    get_all_calls('python_parsers.py', funcs)
+    print('-'*42)
+    pprint(funcs)

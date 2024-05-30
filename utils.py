@@ -17,15 +17,10 @@ def get_args():
     )
     
     parser.add_argument(
-        "-s", "--summarize_docs",
-        action="store_true",
-        help="[True/False] Pass an LLM generated summary of known documentation instead of the whole documentation to the LLM"
-    )
-    
-    parser.add_argument(
-        "-t", "--truncate_docs",
-        action="store_true",
-        help="[True/False] Pass only the first paragraph of known documentation instead of the whole documentation to the LLM"
+        "-r", "--ref_doc",
+        choices=['truncate', 'summarize', 'full'],
+        default='truncate',
+        help="[truncate/summarize/full] How to process the reference documents"
     )
     
     parser.add_argument(
@@ -48,8 +43,17 @@ def generate_report(code_deps, report_path):
                 'path': v['path'],
                 'function': k,
                 'documentation': v[CodeData.DOC],
+                'shortened documentation': v[CodeData.DOC_SHORT],                
                 'code_before': v[CodeData.CODE],
                 'code_after': v.get('code_updated', '-'),
             })
         
     pd.DataFrame(data).to_csv(report_path, index=False)
+    
+    
+def to_file(fname, *args):
+    with open(fname, 'a') as f:
+        for arg_str in args:
+            print(arg_str, file=f)
+            print('-'*10, file=f)
+        print('-'*42, file=f)

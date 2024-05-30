@@ -22,7 +22,6 @@ def get_local_llm_output(system_prompt, prompt):
         }
     )
     
-    # status = r.status_code
     output = '-'
     try:
         output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()

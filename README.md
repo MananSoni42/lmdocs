@@ -12,10 +12,18 @@ python gendocs <project_folder>
 ```
 
 ### Using an OpenAI model
-1. TODO
+#### Setup
+TODO
+
+#### Tested models
+TODO
 
 ### Using a local model
-1. Start your local LLM with an openAI compatible server on any port, say 1234 (Local LLM servers: [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion))
+#### Setup
+Start your local LLM with an openAI compatible server on any port, say 1234 (Local LLM servers: [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion))
+
+#### Tested models
+Tested with `deepseek coder`
 
 ### Additional options
 Refer `python gendocs --help` for more options
@@ -23,30 +31,77 @@ Refer `python gendocs --help` for more options
 
 ## Caveats and known limitations
 
+### Language Support
+Currently supports only Python (3.8+)
+
 ### Dependancy extraction
-The `ast` module is used to analyze the Abstract Syntax Tree of every *Python* file in the codebase. 
+The `ast` module is used to analyze the Abstract Syntax Tree of every Python file in the codebase. 
 Only functional and class dependancies are tracked i.e If the code is not written in a class or function, it is not tracked and documented
 
 ### Known documentation extraction
 
 Functions which have no dependancies are called simple functions
+Documentation for these functions are extracted from their docstring using Pythons `___doc___()` method
+For external libraries (e.g numpy), the library is imported as it is from the original code
 
-Documentation for these functions are extracted from their  docstring using Pythons `___doc___()` method
-
-#### Example 1: 
-Function: `range`
-
-#### Example 2:
-Function `np.arange`
-
-#### Example 3:
-Code: 
-```python
-a,b = {1,2,3}, {3,4,5}
-a.intersection(b)
+#### Example 1:
+Original Code:
 ```
-Not able to extract
+a = []
+for i in range(5):
+    a.append(i**2)
+```
 
-## License
-GPL v3
+Document Extraction code:
+```python
+doc_str = range.__doc__() # Success
+```
 
+#### Example 2: 
+Original Code:
+```python
+import numpy as np
+x = np.linspace(0,10,5)
+```
+
+Document Extraction code:
+```python
+import numpy as np
+doc_str = np.linspace.__doc__() # Success
+``` 
+
+#### Example 2: 
+Original Code:
+```python
+import numpy as np
+x = np.linspace(0,10,5)
+```
+
+Document Extraction code:
+```python
+import numpy as np
+doc_str = np.linspace.__doc__() # Success
+```
+
+#### Example 3: 
+Original Code:
+```python
+a = {1,2,3,4,5}
+b = a.intersection({2,4,6})
+```
+
+Document Extraction code:
+```python
+doc_str = a.intersection.__doc__() # Fails
+doc_str = intersection.__doc__() # Fails
+# Need to know the type of a which is only available at runtime.
+# Successfull call will look like: set.intersection.__doc__()
+```
+
+## TODO
+* Handle imports in code
+* Change nodes in file
+* Add support for openAI models
+* Test more common open source models
+* Improve parser
+* Improve readme

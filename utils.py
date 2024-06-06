@@ -45,15 +45,7 @@ def generate_report(code_deps, report_path):
                 'documentation': v[CodeData.DOC],
                 'shortened documentation': v[CodeData.DOC_SHORT],                
                 'code_before': v[CodeData.CODE],
-                'code_after': v.get('code_updated', '-'),
+                'code_after': v[CodeData.CODE_NEW]
             })
         
     pd.DataFrame(data).to_csv(report_path, index=False)
-    
-    
-def to_file(fname, *args):
-    with open(fname, 'a') as f:
-        for arg_str in args:
-            print(arg_str, file=f)
-            print('-'*10, file=f)
-        print('-'*42, file=f)

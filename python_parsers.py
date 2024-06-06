@@ -6,10 +6,8 @@ from itertools import zip_longest
 from typing import Union
 from get_function_docs import CodeData
 import logging
-from pprint import pprint
+import tokenize
 import copy
-
-from utils import to_file
 
 
 def to_remove(call_str):
@@ -56,45 +54,80 @@ def get_func_calls(tree):
     return func_calls
 
 
-def get_all_imports(path):
+def get_all_calls(path, code_str, funcs):    
+    tree = ast.parse(code_str)
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
+
+            extra_deps = []
+            if isinstance(node, ast.ClassDef):
+                for child_node in node.body:
+                    if isinstance(child_node, ast.FunctionDef):
+                        extra_deps.append(child_node.name)
+                        funcs.add(
+                            child_node.name,
+                            {
+                                CodeData.CODE: ast.unparse(child_node),
+                                CodeData.NODE: child_node,
+                                CodeData.DEP: get_func_calls(child_node),
+                                CodeData.CUSTOM: True,
+                                CodeData.PATH: path,
+                                CodeData.CODE_OFFSET: '    ',
+                            }
+                        )
+
+            funcs.add(
+                node.name,
+                {
+                    CodeData.CODE: ast.unparse(node),
+                    CodeData.NODE: node,
+                    CodeData.DEP: get_func_calls(node),
+                    CodeData.CUSTOM: True,
+                    CodeData.PATH: path,
+                }
+            )
+
+
+def get_all_imports(code_str):
     libs = []
     import_stmts = []
     alias_map = {}
-    with open(path) as f:    
-        tree = ast.parse(f.read())
+    
+    tree = ast.parse(code_str)
         
-        for node in ast.walk(tree):
+    for node in ast.walk(tree):
 
-            if isinstance(node, ast.Import):
-                import_stmts.append(ast.unparse(node))
-                for import_alias in node.names:
-                    libs.append(import_alias.name)                        
-                    if import_alias.asname: 
-                        alias_map[import_alias.asname] = import_alias.name
-            
-            if isinstance(node, ast.ImportFrom):
-                import_stmts.append(ast.unparse(node))
-                module = node.module
-                for import_alias in node.names:                    
-                    libs.append(f'{module}.{import_alias.name}')                    
-                    if import_alias.asname:                     
-                        alias_map[import_alias.asname] = import_alias.name
+        if isinstance(node, ast.Import):
+            import_stmts.append(ast.unparse(node))
+            for import_alias in node.names:
+                libs.append(import_alias.name)                        
+                if import_alias.asname: 
+                    alias_map[import_alias.asname] = import_alias.name
+        
+        if isinstance(node, ast.ImportFrom):
+            import_stmts.append(ast.unparse(node))
+            module = node.module
+            for import_alias in node.names:                    
+                libs.append(f'{module}.{import_alias.name}')                    
+                if import_alias.asname:                     
+                    alias_map[import_alias.asname] = import_alias.name
                 
                     
     return libs, alias_map, import_stmts
 
 
 def parse_commented_function(func_name, func_str):
-    orig_func_str = copy.copy(func_str)
+    
+    clean_func = lambda x: x.lstrip().strip().lstrip('\n').strip('\n').lstrip().strip()
+    
+    if '```python' in func_str:
+        func_str = func_str.split('```python')[1]
         
     func_str = func_str.strip('```')
     func_str = func_str.split('```\n')[0]
-    func_str = func_str.lstrip().strip()
-    func_str = func_str.lstrip('\n').strip('\n')
-    func_str = func_str.lstrip().strip()
+    func_str = clean_func(func_str)
     
     ast_code, success, reason = None, False, None
-    # to_file('./debug.func.log', orig_func_str, func_str)
 
     try:
         ast_code = ast.parse(func_str)
@@ -108,9 +141,18 @@ def parse_commented_function(func_name, func_str):
                 ast_code = node
                 break
             
+    if ast_code:
+        _, _, import_stmts = get_all_imports(func_str)
+        if import_stmts:
+            logging.info(f'\tRemoving import statements from generated version of `{func_name}`: {import_stmts}')
+    
+        for stmt in import_stmts:
+            func_str = func_str.replace(stmt, '')
+            func_str = clean_func(func_str)            
+            
     if  ast_code and not (isinstance(ast_code, ast.FunctionDef) or isinstance(ast_code, ast.ClassDef)):
         success = False
-        reason = f'Type error `({type(ast_code)})`' 
+        reason = f'Type error `({type(ast_code)})`'         
         
     return func_str, ast_code, success, reason
 
@@ -140,42 +182,38 @@ def same_ast(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list
         return node1 == node2
 
 
-def get_all_calls(path, funcs):
-    with open(path) as f:    
-        tree = ast.parse(f.read())
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
+def replace_func(func_name, orig_func_str, new_func_str, file_path, file_str):
+    
+    py_clean = lambda x: x.lstrip('\t').strip()
+    flines = list(file_str.split('\n'))
+        
+    orig_code_lines = orig_func_str.split('\n')
+    first_line, last_line = py_clean(orig_code_lines[0]), py_clean(orig_code_lines[-1])
+    
+    start_ind, end_ind = -1, -1
+    for i,fline in enumerate(flines):
+        if fline.lstrip('\t').strip() == first_line:
+            start_ind = i
+        if start_ind != -1 and fline.lstrip('\t').strip() == last_line:
+            end_ind = i
+            break
+        
+    if start_ind == -1 or end_ind == -1:
+        logging.info(f'Could not find `{func_name}` in file `{file_path}')
+        new_flines = flines
+    else:
+        new_flines = flines[:start_ind] + new_func_str.split('\n') + flines[end_ind+1:]
+        
+    return '\n'.join(new_flines)
 
-                extra_deps = []
-                if isinstance(node, ast.ClassDef):
-                    for child_node in node.body:
-                        if isinstance(child_node, ast.FunctionDef):
-                            extra_deps.append(child_node.name)
-                            funcs.add(
-                                child_node.name,
-                                {
-                                    CodeData.CODE: ast.unparse(child_node),
-                                    CodeData.NODE: child_node,
-                                    CodeData.DEP: get_func_calls(child_node),
-                                    CodeData.CUSTOM: True,
-                                    CodeData.PATH: path,
-                                }
-                            )
 
-                funcs.add(
-                    node.name,
-                    {
-                        CodeData.CODE: ast.unparse(node),
-                        CodeData.NODE: node,
-                        CodeData.DEP: get_func_calls(node),
-                        CodeData.CUSTOM: True,
-                        CodeData.PATH: path,
-                    }
-                )
-                                
+def get_indent_from_file(path):
+    with open(path) as f:
+        for (tok_type, tok_str, _, _, _) in tokenize.generate_tokens(f.readline):
+            if tok_type == tokenize.INDENT:
+                return tok_str
+    logging.error()
 
-if __name__ == '__main__':
-    funcs = CodeData()
-    get_all_calls('python_parsers.py', funcs)
-    print('-'*42)
-    pprint(funcs)
+
+if  __name__ == '__main__':
+    get_indent_from_file('python_parsers.py')

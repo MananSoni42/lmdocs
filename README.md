@@ -99,9 +99,17 @@ doc_str = intersection.__doc__() # Fails
 ```
 
 ## TODO
-* Handle imports in code
-* Change nodes in file
-* Add support for openAI models
-* Test more common open source models
-* Improve parser
-* Improve readme
+[x] Handle imports in generated code
+[ ] Change nodes in file
+[ ] Add support for openAI models
+[ ] Test more common open source models
+[ ] Improve readme
+[ ] Improve logging + add verbose argument and logging.debug calls
+[ ] Refactor code (main.py)
+[ ] Add argument for ony docstring generation
+[ ] Improve code indent detection algo
+
+## License 
+CC By NC International
+No commercial use
+Derivatives and adaptation allowed

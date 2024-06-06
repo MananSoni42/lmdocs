@@ -15,7 +15,7 @@ INSTRUCTIONS = '''\
         - Short descriptions of each output parameter
 - Inline comments
     - Short inline comments for blocks of code that are hard to understand
-    - ONLY include where the code functionality is not obvious, do not add for every line
+    - Only write such comments for each block of code (NOT for every line)
 - You also have access to reference documentation for sub-functions and sub-classes used in the original class, method, or function. These should be used for enhanced context for better documentation.
 - Preserve all existing documentation given in the original class, method, or function.
 - Do not change the original class, method, or function, only add comments wherever necessary.

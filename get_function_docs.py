@@ -8,6 +8,8 @@ class CodeData:
     DOC = 'documentation'
     DOC_SHORT = 'documentation_short'
     CODE = 'code'
+    CODE_NEW = 'code_new'
+    CODE_OFFSET = 'code_offset'
     NODE = 'node'
     CUSTOM = 'custom'
     PATH = 'path'
@@ -19,9 +21,11 @@ class CodeData:
             CodeData.DOC: '-',
             CodeData.DOC_SHORT: '-',
             CodeData.NODE: None, 
-            CodeData.CODE: '-', 
+            CodeData.CODE: '-',
+            CodeData.CODE_NEW: '-',
             CodeData.CUSTOM: False,
             CodeData.PATH: '-',
+            CodeData.CODE_OFFSET: '',
         }
         
     def __getitem__(self, name):

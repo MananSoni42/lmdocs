@@ -1,10 +1,9 @@
 # Gendocs: Generative AI for code documentation :brain: :arrow_right: :computer:
 Generates documentation for your code using your favourite state-of-the art LLMs!
 
-## Features
-[x] Extracts and references documentation from your imported libraries
-[ ] _Guarantees_ no changes to the original codebase, Only adds comments
-[x] Works with local models as well as OpenAI models
+Gendocs is a tool that generates documentation for your code using state-of-the-art LLMs. It can: 
+* extract and reference documentation from imported libraries
+* Ensures that your codebase remains unchanged while adding helpful comments.
 
 ## Usage
 ```
@@ -99,17 +98,16 @@ doc_str = intersection.__doc__() # Fails
 ```
 
 ## TODO
-[x] Handle imports in generated code
-[ ] Change nodes in file
-[ ] Add support for openAI models
-[ ] Test more common open source models
-[ ] Improve readme
-[ ] Improve logging + add verbose argument and logging.debug calls
-[ ] Refactor code (main.py)
-[ ] Add argument for ony docstring generation
-[ ] Improve code indent detection algo
+
+- [x] Handle imports in generated code
+- [ ] Change nodes in file
+- [ ] Add support for openAI models
+- [ ] Test more common open source models
+- [ ] Improve readme
+- [ ] Improve logging + add verbose argument and logging.debug calls
+- [ ] Refactor code (main.py)
+- [ ] Add argument for ony docstring generation
+- [ ] Improve code indent detection algo
 
 ## License 
-CC By NC International
-No commercial use
-Derivatives and adaptation allowed
+[GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)

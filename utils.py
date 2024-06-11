@@ -7,27 +7,40 @@ def get_args():
     
     parser.add_argument(
         "path",
-        help="Path to the file/folder of project"
+        help="Path to the file/folder of project",
     )
+    
+    parser.add_argument(
+        "-v", "--verbose",
+        action='store_true',
+        help="Give out verbose logs",
+    )
+    
+
+    parser.add_argument(
+        "-k", "--open_ai_key",
+        help="Your Open AI key",
+    )
+
+    parser.add_argument(
+        "-e", "--open_ai_key_env",
+        help="Environment variable where Open AI key is stored",
+    )
+
     parser.add_argument(
         "-p", "--port",
         type=int,
         default=1234,
-        help="Port for Local LLM server"
+        help="Port where Local LLM server is hosted"
     )
     
     parser.add_argument(
         "-r", "--ref_doc",
         choices=['truncate', 'summarize', 'full'],
         default='truncate',
-        help="[truncate/summarize/full] How to process the reference documents"
+        help="[truncate/summarize/full] How to process reference documentation"
     )
-    
-    parser.add_argument(
-        "-key", "--openai_key",
-        help="Pass OpenAI key"
-    )    
-    
+        
     return parser.parse_args()
 
 

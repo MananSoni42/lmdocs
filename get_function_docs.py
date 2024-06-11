@@ -9,7 +9,7 @@ class CodeData:
     DOC_SHORT = 'documentation_short'
     CODE = 'code'
     CODE_NEW = 'code_new'
-    CODE_OFFSET = 'code_offset'
+    CODE_INDENT = 'code_indent'
     NODE = 'node'
     CUSTOM = 'custom'
     PATH = 'path'
@@ -25,7 +25,7 @@ class CodeData:
             CodeData.CODE_NEW: '-',
             CodeData.CUSTOM: False,
             CodeData.PATH: '-',
-            CodeData.CODE_OFFSET: '',
+            CodeData.CODE_INDENT: '',
         }
         
     def __getitem__(self, name):
@@ -67,7 +67,7 @@ class CodeData:
     def __str__(self):
         out_str = ''
         for func,func_info in self.code_blobs.items():
-            out_str += f'Function: {func} (Custom: {func_info[CodeData.CUSTOM]}), Dependancies: {self.dependancies(func)}, Documented Dependancies: {self.documented_dependancies(func)}\n'
+            out_str += f'Code Block: {func} (Custom: {func_info[CodeData.CUSTOM]}), Dependancies: {self.dependancies(func)}, Documented Dependancies: {self.documented_dependancies(func)}\n'
         return out_str
 
     def __repr__(self):

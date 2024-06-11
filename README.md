@@ -100,14 +100,15 @@ doc_str = intersection.__doc__() # Fails
 ## TODO
 
 - [x] Handle imports in generated code
-- [ ] Change nodes in file
+- [x] Change nodes in file
 - [ ] Add support for openAI models
 - [ ] Test more common open source models
-- [ ] Improve readme
+- [ ] Improve readme - No deps, Better explanations
 - [ ] Improve logging + add verbose argument and logging.debug calls
 - [ ] Refactor code (main.py)
 - [ ] Add argument for ony docstring generation
-- [ ] Improve code indent detection algo
+- [x] Improve code indent detection algo
+- [ ] Add support for lambdas
 
 ## License 
 [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)

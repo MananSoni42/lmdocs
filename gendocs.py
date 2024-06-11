@@ -36,7 +36,8 @@ def main():
                     logging.info(f'\tExtracting dependancies from {path}')
                     
                     with open(path) as f:    
-                        code_str = ast.parse(f.read())
+                        code_str = f.read()
+                        
                     import_stmts.extend(get_all_imports(code_str)[2])
                     get_all_calls(path, code_str, code_dependancies)
                     
@@ -44,7 +45,7 @@ def main():
         logging.info(f'\tExtracting dependancies from {path}')
         
         with open(path) as f:    
-            code_str = ast.parse(f.read())
+            code_str = f.read()
         
         import_stmts.extend(get_all_imports(code_str)[2])
         get_all_calls(path, code_str, code_dependancies)
@@ -57,12 +58,11 @@ def main():
 
     simple_funcs = [func_name for func_name in code_dependancies.keys() if code_dependancies.dependancies(func_name) == 0]
 
-    logging.info(f'Total functionsc/Classes: {len(code_dependancies.keys())}')
-    logging.info(f'Simple functions (No dependancies): {len(simple_funcs)}')
+    logging.debug(f'Total functions/methods/clases: {len(code_dependancies.keys())}')
 
     known_docs = get_known_function_docs(import_stmts, simple_funcs)
 
-    logging.info(f'Documentation found for {len([x for x in known_docs if x != "-"])} simple functions')
+    logging.info(f'Existing docs found for {len([x for x in known_docs if x != "-"])}/{len(code_dependancies.keys())} functions/methods/clases')
 
     n = len(simple_funcs)
     logging.info(f'Using `{args.ref_doc}` strategy to shorten docs')
@@ -78,11 +78,10 @@ def main():
                 
 
     custom_funcs = [func_name for func_name, func_info in code_dependancies.items() if func_info[CodeData.CUSTOM]]
-    logging.info(f'Custom functions: {len(custom_funcs)}')
 
     n = len(custom_funcs)
     num_digits = math.ceil(math.log(n, 10))
-    logging.info('Generating docs for custom functions/classes')
+    logging.info(f'Generating docs for {len(custom_funcs)} custom functions/methods/classes')
 
     for i in range(n):
         least_dep_func = min(custom_funcs, key=lambda x: code_dependancies.undocumented_dependancies(x))
@@ -99,14 +98,14 @@ def main():
                 code_dependancies.add(
                     least_dep_func,
                     {
-                        CodeData.CODE_NEW: '\n'.join([code_dependancies[least_dep_func][CodeData.CODE_OFFSET] + line for line in new_func_code.split('\n')]),
+                        CodeData.CODE_NEW: '\n'.join([code_dependancies[least_dep_func][CodeData.CODE_INDENT] + line for line in new_func_code.split('\n')]),
                         CodeData.DOC: ast.get_docstring(new_func_node),
                     }
                 )
                 logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{MAX_RETRIES} tries')      
                 break
             else:
-                reason = 'Generated AST mismatch'
+                reason = 'Generated AST does not match original AST'
         else:
             logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {MAX_RETRIES} tries (Reason: {reason})')
         

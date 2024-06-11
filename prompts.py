@@ -11,8 +11,9 @@ INSTRUCTIONS = '''\
     - Should be declared using “”” triple double quotes “”” just below the original class, method, or function definition.
     - Should contain:
         - A single line summary 
-        - Short descriptions of each input parameter
-        - Short descriptions of each output parameter
+        - Input: Short descriptions of each input parameter
+        - Returns: Short descriptions of each output parameter
+        - Raises: Short description of failure cases and exceptions raised by the class, method, or function
 - Inline comments
     - Short inline comments for blocks of code that are hard to understand
     - Only write such comments for each block of code (NOT for every line)

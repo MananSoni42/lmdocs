@@ -1,6 +1,6 @@
 import logging
 from prompts import SYSTEM_PROMPT, DOC_SUMMARIZATION_PROMPT
-from local_llm_inference import get_local_llm_output
+from llm_inference import get_llm_output_local
 
 class CodeData:
     
@@ -119,7 +119,7 @@ def get_reference_docs(func, code_dependancies):
 
 
 def get_summarized_docs(func_name, doc_str):
-   return get_local_llm_output(SYSTEM_PROMPT, DOC_SUMMARIZATION_PROMPT(func_name, doc_str))
+   return get_llm_output_local(SYSTEM_PROMPT, DOC_SUMMARIZATION_PROMPT(func_name, doc_str))
 
 
 def get_truncated_docs(func_name, doc_str):

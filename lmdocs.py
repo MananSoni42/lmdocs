@@ -1,8 +1,8 @@
 from python_parsers import get_all_calls, get_all_imports, parse_commented_function, same_ast, remove_docstring, replace_func
-from get_function_docs import CodeData, get_known_function_docs, get_reference_docs, get_shortened_docs
+from get_code_docs import CodeData, get_known_function_docs, get_reference_docs, get_shortened_docs
 from prompts import SYSTEM_PROMPT, DOC_GENERATION_PROMPT
-from constants import MAX_RETRIES
-from local_llm_inference import get_local_llm_output
+from constants import LOCAL, OPENAI
+from llm_inference import get_llm_output, get_local_llm_name, get_llm_output_local
 from utils import get_args, generate_report
 
 import ast
@@ -12,6 +12,7 @@ import logging
 import math
 
 
+import sys
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -21,9 +22,15 @@ logging.basicConfig(
 def main():
     
     args = get_args()    
-    
+        
     path = args.path
     logging.info(f'Project path: {path}')
+    
+    mode = LOCAL if args.port else OPENAI
+    logging.info(f'mode: {mode}')
+    model_name = get_local_llm_name(args.port) if mode == LOCAL else args.openai_model
+    logging.info(f'Using {mode} LLM: {model_name}')
+    
 
     import_stmts = []
     code_dependancies = CodeData()
@@ -83,18 +90,27 @@ def main():
     num_digits = math.ceil(math.log(n, 10))
     logging.info(f'Generating docs for {len(custom_funcs)} custom functions/methods/classes')
 
-    for i in range(n):
+    for i in range(3):
         least_dep_func = min(custom_funcs, key=lambda x: code_dependancies.undocumented_dependancies(x))
         reason = None
         
-        for ri in range(MAX_RETRIES):
-            llm_out = get_local_llm_output(SYSTEM_PROMPT, DOC_GENERATION_PROMPT(code_dependancies[least_dep_func][CodeData.CODE], get_reference_docs(least_dep_func, code_dependancies)))
+        for ri in range(args.max_retries):
+            llm_out = get_llm_output(
+                SYSTEM_PROMPT, 
+                DOC_GENERATION_PROMPT(
+                    code_dependancies[least_dep_func][CodeData.CODE], 
+                    get_reference_docs(least_dep_func, code_dependancies)
+                ),
+                mode,
+                args,
+            )
+            
             new_func_code, new_func_node, success, reason = parse_commented_function(least_dep_func, llm_out)
             
             if not success:
                 continue
         
-            if same_ast(code_dependancies[least_dep_func][CodeData.NODE], remove_docstring(new_func_node)):
+            if same_ast(remove_docstring(code_dependancies[least_dep_func][CodeData.NODE]), remove_docstring(new_func_node)):
                 code_dependancies.add(
                     least_dep_func,
                     {
@@ -102,12 +118,12 @@ def main():
                         CodeData.DOC: ast.get_docstring(new_func_node),
                     }
                 )
-                logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{MAX_RETRIES} tries')      
+                logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{args.max_retries} tries')      
                 break
             else:
                 reason = 'Generated AST does not match original AST'
         else:
-            logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {MAX_RETRIES} tries (Reason: {reason})')
+            logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {args.max_retries} tries (Reason: {reason})')
         
         if code_dependancies[least_dep_func][CodeData.DOC] != '-':
             code_dependancies.add(

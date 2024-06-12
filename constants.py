@@ -6,8 +6,8 @@ CALLS_TO_INGORE = {
     'isinstance', 'add'
 }
 
-PORT = 1234
 MAX_TOKENS = 2048
 TEMPERATURE = 0.2
 STOP_TOKENS=['<|EOT|>', '<STOP>']
-MAX_RETRIES = 3
+OPENAI = 'openai'
+LOCAL = 'local'

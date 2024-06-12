@@ -4,7 +4,7 @@ from constants import CALLS_TO_INGORE
 import re
 from itertools import zip_longest
 from typing import Union
-from get_function_docs import CodeData
+from get_code_docs import CodeData
 import logging
 import tokenize
 import copy

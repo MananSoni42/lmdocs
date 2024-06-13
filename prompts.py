@@ -16,10 +16,10 @@ INSTRUCTIONS = '''\
         - Raises: Short description of failure cases and exceptions raised by the class, method, or function
 - Inline comments
     - Short inline comments for blocks of code that are hard to understand
-    - Only write such comments for each block of code (NOT for every line)
+    - Only write such comments for each block of code, not for every line
 - You also have access to reference documentation for sub-functions and sub-classes used in the original class, method, or function. These should be used for enhanced context for better documentation.
 - Preserve all existing documentation given in the original class, method, or function.
-- Do not change the original class, method, or function, only add comments wherever necessary.
+- Do not change the code, name or existing comments of the original class, method, or function, only add comments wherever necessary.
 - Do not add any import statements
 - Only reply with the documented class, method, or function within ``` tags followed by the stop token: <STOP>'''
 
@@ -28,13 +28,13 @@ DOC_GENERATION_PROMPT = lambda func, ref_docs: f'''\
 ### Guidelines:
 {INSTRUCTIONS}
 
+### Reference documentation:
+{format_docs(ref_docs)}
+
 ### Original code block:
 ```python
 {func}
 ```
-
-### Reference documentation:
-{format_docs(ref_docs)}
 
 ### Original code block with documentation:
 ```python

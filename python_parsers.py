@@ -182,11 +182,16 @@ def same_ast(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list
         return node1 == node2
 
 
-py_clean = lambda x: x.lstrip('\t').strip()
+def remove_comments_from_line(line):
+    return re.sub('#+[\s]*.*\n*$', '', line)
+
+
+py_clean = lambda x: remove_comments_from_line(x.lstrip('\t').strip()).lstrip('\t').strip()
 
 empty_line = lambda x: False if x.replace('\n', '').replace('\t', '').strip() else True
 
-clean_code_lines = lambda clines: [(i,py_clean(cline)) for i,cline in enumerate(clines) if not empty_line(cline)]
+clean_code_lines = lambda clines: [(i,py_clean(cline)) for i,cline in enumerate(clines) if not empty_line(py_clean(cline))]
+
 
 def replace_func_single_line(func_name, orig_code_lines, new_code_lines, file_path, flines):
     
@@ -257,9 +262,18 @@ def replace_func(func_name, orig_code_str, new_code_str, file_path, f_str):
     else:
         return '\n'.join(replace_func_double_line(func_name, orig_code_lines, new_code_lines, file_path, flines))
 
+
 def get_indent_from_file(path):
     with open(path) as f:
         for (tok_type, tok_str, _, _, _) in tokenize.generate_tokens(f.readline):
             if tok_type == tokenize.INDENT:
                 return tok_str
     logging.error(f'Could not find indent (tabs/spaces) from path: `{path}`')
+    
+    
+if __name__ == '__main__':
+    with open('python_parsers_copy.py') as f:
+        for i,line in enumerate(f.readlines()):
+            cleaned_line = py_clean(line)
+            if cleaned_line and line != cleaned_line:
+                print(i, repr(line), repr(cleaned_line), sep=' | ')

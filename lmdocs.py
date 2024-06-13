@@ -69,7 +69,7 @@ def main():
 
     known_docs = get_known_function_docs(import_stmts, simple_funcs)
 
-    logging.info(f'Existing docs found for {len([x for x in known_docs if x != "-"])}/{len(code_dependancies.keys())} functions/methods/clases')
+    logging.info(f'Existing docs found for {len([x for x in known_docs if x != "-"])}/{len(code_dependancies.keys())} calls')
 
     n = len(simple_funcs)
     logging.info(f'Using `{args.ref_doc}` strategy to shorten docs')
@@ -121,6 +121,12 @@ def main():
                 logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{args.max_retries} tries')      
                 break
             else:
+                with open('debug.func.log', 'a') as f:
+                    print(f'func: {least_dep_func} | try: {ri}', file=f)
+                    print(new_func_code, file=f)
+                    print('-'*10, file=f)
+                    print(code_dependancies[least_dep_func][CodeData.CODE], file=f)
+                    print('-'*42, file=f)
                 reason = 'Generated AST does not match original AST'
         else:
             logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(n).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {args.max_retries} tries (Reason: {reason})')

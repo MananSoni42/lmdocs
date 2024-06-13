@@ -135,8 +135,9 @@ doc_str = intersection.__doc__() # Fails
 - [ ] Add argument for ony docstring generation
 - [x] Improve code indent detection algo
 - [ ] Add support for lambdas
-- [ ] Add support/test for functions with existing docs
+- [x] Add support/test for functions with existing docs
 - [ ] Add example of documented function in readme
+- [x] Remove comments before comparing for replacement
 
 ## License 
 [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)

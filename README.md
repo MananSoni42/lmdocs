@@ -1,18 +1,73 @@
-# lmdocs: Generative AI for code documentation :brain: :arrow_right: :computer:
-Generates documentation for your code using your favourite state-of-the art LLMs!
+# lmdocs: Generative AI for code documentation :brain: :arrow_right: :computer: :snake:
 
-lmdocs is a tool that generates documentation for your code using state-of-the-art LLMs. It can: 
-* Extract and reference documentation from imported libraries
-* Ensures that your codebase remains unchanged while adding helpful comments
+lmdocs is a Python tool that automatically generates documentation for your code using large language models (LLMs).
 
-## Usage
+## Features
+* **Automatic Documentation Extraction**: extracts and references documentation from imported libraries within your codebase
+* **LLM-Generated Comments**: Utilizes your favourite language model to generate human-readable comments, ensuring your code is well-documented and easy to understand.
+* **Codebase Preservation**: Guarantees that the functionality of your 
+
+## lmdocs in Action :hammer:
+<table>
+<tr>
+<th> Before </th>
+<th> After </th>
+</tr>
+<tr>
+<td>
+
+```python
+def fibonacci(n):
+    a, b = 0, 1
+    fib_seq = []
+    for i in range(n):
+        fib_seq.append(a)
+        a, b = b, a + b
+    return fib_seq
+```
+
+</td>
+<td>
+
+```python
+def fibonacci(n):
+    """
+    Generates the Fibonacci sequence up to n terms.
+    
+    Input:
+        n (int): The number of terms in the Fibonacci sequence to generate.
+        
+    Returns:
+        list: A list containing the first n terms of the Fibonacci sequence.
+        
+    Raises:
+        ValueError: If n is less than 1.
+    """
+    
+    a, b = 0, 1 # Initialize two variables to store the last and current term in the sequence
+    fib_seq = [] # Initialize an empty list to store the generated Fibonacci sequence
+    
+    for i in range(n): # Generate n terms of the Fibonacci sequence
+        fib_seq.append(a) # Append the current term to the sequence
+        
+        # Update the last two terms for the next iteration
+        a, b = b, a + b 
+    
+    return fib_seq # Return the generated Fibonacci sequence
+```
+
+</td>
+</tr>
+</table>
+The example above was generated using the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
+
+## Quickstart :rocket:
 ### Using an OpenAI model
 ```bash
 python lmdocs.py <project path> --openai_key <key> 
 ```
 
-#### Tested models
-`gpt-3.5-turbo`, `gpt-4-turbo`, `gpt-4o`
+Tested with `gpt-3.5-turbo`, `gpt-4-turbo`, `gpt-4o`
 
 ### Using a local model
 ```bash
@@ -20,9 +75,9 @@ python lmdocs.py <project path> --port <local LLM server port>
 ```
 
 #### Setup
-Start your local LLM with an openAI compatible server on any port, say 1234 (Local LLM servers: [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion))
+To use local LLMs, you need to set up an openAI compatible server. 
+You can use local desktops apps like [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://ollama.com/blog/openai-compatibility), [GPT4All](https://docs.gpt4all.io/gpt4all_chat.html#server-mode), [llama.cpp](https://github.com/ggerganov/llama.cpp/tree/master/examples/server) to set up your server.
 
-#### Tested models
 Although lmdocs is compatible with any local LLM, I have personally tested that it works for the following models: 
 `deepseek coder 7B`, `wizard coder v1 7B`, `llama3 7B instruct`, `mistral 7B instruct v0.1`, `mistral 7B instruct v0.2`, `mistral 7B instruct v0.3`, `phi3 mini`
 
@@ -69,75 +124,12 @@ It is strongly recommended that you install the libraries/packages for the proje
 Documentation for Functions which have no dependancies are extracted from their docstring using Pythons `___doc___()` method
 For external libraries (e.g numpy), the library is imported as it is from the original code
 
-#### Example 1:
-Original Code:
-```
-a = []
-for i in range(5):
-    a.append(i**2)
-```
-
-Document Extraction code:
-```python
-doc_str = range.__doc__() # Success
-```
-
-#### Example 2: 
-Original Code:
-```python
-import numpy as np
-x = np.linspace(0,10,5)
-```
-
-Document Extraction code:
-```python
-import numpy as np
-doc_str = np.linspace.__doc__() # Success
-``` 
-
-#### Example 2: 
-Original Code:
-```python
-import numpy as np
-x = np.linspace(0,10,5)
-```
-
-Document Extraction code:
-```python
-import numpy as np
-doc_str = np.linspace.__doc__() # Success
-```
-
-#### Example 3: 
-Original Code:
-```python
-a = {1,2,3,4,5}
-b = a.intersection({2,4,6})
-```
-
-Document Extraction code:
-```python
-doc_str = a.intersection.__doc__() # Fails
-doc_str = intersection.__doc__() # Fails
-# Need to know the type of a which is only available at runtime.
-# Successfull call will look like: set.intersection.__doc__()
-```
-
 ## TODO
 
-- [x] Handle imports in generated code
-- [x] Change nodes in file
-- [x] Add support for openAI models
-- [x] Test more common open source models
-- [x] Improve readme - No deps, Better explanations
-- [ ] Improve logging + add verbose argument and logging.debug calls
-- [ ] Refactor code (main.py)
-- [ ] Add argument for ony docstring generation
-- [x] Improve code indent detection algo
-- [ ] Add support for lambdas
-- [x] Add support/test for functions with existing docs
 - [ ] Add example of documented function in readme
-- [x] Remove comments before comparing for replacement
+- [ ] Add reason for AST not matching
+- [ ] Improve logging + add verbose argument and logging.debug calls
+- [ ] Add support for lambdas
 
 ## License 
 [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)

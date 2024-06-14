@@ -81,7 +81,7 @@ def clean_doc_str(doc_str):
     return doc_str
     
     
-def get_known_function_docs(import_stmts, funcs):
+def get_reference_docs_simple_functions(import_stmts, funcs):
     for stmt in import_stmts:
         try:
             exec(stmt)
@@ -107,7 +107,7 @@ def get_known_function_docs(import_stmts, funcs):
     return docs
 
 
-def get_reference_docs(func, code_dependancies):
+def get_reference_docs_custom_functions(func, code_dependancies):
     ref_docs = []
     for dep_func in code_dependancies[func][CodeData.DEP]:
         if code_dependancies[dep_func][CodeData.DOC_SHORT] != '-':

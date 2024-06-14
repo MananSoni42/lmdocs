@@ -133,7 +133,7 @@ def parse_commented_function(func_name, func_str):
         ast_code = ast.parse(func_str)
         success = True
     except Exception as e:
-        reason = f'Parse error `({repr(e)[:15]}...)`' 
+        reason = f'Parse error `({repr(e)[:50]}...)`' 
         
     if ast_code and not (isinstance(ast_code, ast.FunctionDef) or isinstance(ast_code, ast.ClassDef)):
         for node in ast_code.body:

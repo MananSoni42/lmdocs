@@ -102,7 +102,7 @@ def get_reference_docs_simple_functions(import_stmts, funcs):
         
         docs.append(func_doc)
         if func_doc == '-':
-            logging.debug(f'No documentation found for func: {func}')
+            logging.debug(f'No reference documentation found for func: {func}')
     
     return docs
 

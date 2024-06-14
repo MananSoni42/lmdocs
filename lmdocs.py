@@ -14,6 +14,9 @@ logging.basicConfig(
 def main():
     
     args = get_args()    
+    
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
         
     logging.info(f'Project path: {args.path}')
     

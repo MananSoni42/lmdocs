@@ -4,6 +4,7 @@ from prompts import SYSTEM_PROMPT, DOC_GENERATION_PROMPT
 from llm_inference import get_llm_output
 
 import argparse
+from argparse import RawTextHelpFormatter
 import pandas as pd
 import logging
 import ast
@@ -12,7 +13,7 @@ import math
 
 
 def get_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
         
     parser.add_argument(
         "path",
@@ -39,7 +40,8 @@ def get_args():
         "--openai_model",
         choices=['gpt-3.5-turbo', 'gpt-4-turbo', 'gpt-4o'],
         default='gpt-3.5-turbo',
-        help="Which openAI model to use. Supported models are [gpt-3.5-turbo, gpt-4-turbo, gpt-4o]. gpt-3.5-turbo is used by default",
+        help="Which openAI model to use. Supported models are ['gpt-3.5-turbo', 'gpt-4-turbo', 'gpt-4o']\
+            \ngpt-3.5-turbo is used by default"
     )
 
     parser.add_argument(
@@ -52,7 +54,7 @@ def get_args():
         "--max_retries",
         type=int,
         default=3,
-        help="Number of attempts to give the LLM to generate the documentation for each function"
+        help="Number of attempts that the LLM gets to generate the documentation for each function"
     )
     
     
@@ -60,7 +62,11 @@ def get_args():
         "--ref_doc",
         choices=['truncate', 'summarize', 'full'],
         default='truncate',
-        help="How to process reference documentation. Supported choices are: [truncate / summarize / full] "
+        help="Strategy to process reference documentation. Supported choices are:\
+            \ntruncate    - Truncate documentation to the first paragraph\
+            \nsummarize   - Generate a single summary of the documentation using the given LLM\
+            \nfull        - Use the complete documentation (Can lead to very long context length)\
+            \n\"truncate\" is used as the default strategy"
     )
         
     args = parser.parse_args()
@@ -136,11 +142,12 @@ def generate_documentation_for_custom_calls(code_dependancies, mode, args):
     num_digits = math.ceil(math.log(num_custom_funcs, 10))
     logging.info(f'Generating docs for {len(custom_funcs)} custom functions/methods/classes')
 
-    for i in range(num_custom_funcs):
+    for i in range(3):
         least_dep_func = min(custom_funcs, key=lambda x: code_dependancies.undocumented_dependancies(x))
         reason = None
         
         for ri in range(args.max_retries):
+            logging.debug(f'\tTry {ri+1}/{args.max_retries} for `{least_dep_func}`')
             llm_out = get_llm_output(
                 SYSTEM_PROMPT, 
                 DOC_GENERATION_PROMPT(

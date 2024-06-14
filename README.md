@@ -3,9 +3,9 @@
 lmdocs is a Python tool that automatically generates documentation for your code using large language models (LLMs).
 
 ## Features
-* **Automatic Documentation Extraction**: extracts and references documentation from imported libraries within your codebase
+* **Automatic Documentation Extraction**: Extracts and references documentation from imported libraries within your codebase
 * **LLM-Generated Comments**: Utilizes your favourite language model to generate human-readable comments, ensuring your code is well-documented and easy to understand.
-* **Codebase Preservation**: Guarantees that the functionality of your 
+* **Codebase Preservation**: Guarantees no changes to the functionality of your codebase, only adds helpful comments.
 
 ## lmdocs in Action :hammer:
 <table>
@@ -59,6 +59,7 @@ def fibonacci(n):
 </td>
 </tr>
 </table>
+
 The example above was generated using the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
 
 ## Quickstart :rocket:
@@ -111,17 +112,17 @@ optional arguments:
 ### Language Support
 Currently supports only Python (3.8+)
 
-### Code extraction
-The `ast` module is used to analyze the Abstract Syntax Tree of every Python file in the codebase. 
-Only functional and class dependancies are tracked i.e If the code is not written in a class or function, it is not tracked and documented
+### Dependancy extraction
+The `ast` module is used to analyze the Abstract Syntax Tree of every Python file in the codebase.  
+Only functional and class dependancies are tracked i.e Only code written in a class or function, is tracked and documented
 
-### Dependancies
-lmdocs does not depend on any other packages.
-It is strongly recommended that you install the libraries/packages for the project that needs to be documented as these are needed for reference document extraction
+### Package Dependancies
+lmdocs is written in pure Python, it does not depend on any other packages.  
+It is strongly recommended that you install the libraries/packages for the project that needs to be documented for reference document extraction
 
 ### Reference documentation extraction
 
-Documentation for Functions which have no dependancies are extracted from their docstring using Pythons `___doc___()` method
+Documentation for functions which have no dependancies is not extracted from their docstring using Pythons `___doc___()` method
 For external libraries (e.g numpy), the library is imported as it is from the original code
 
 ## TODO

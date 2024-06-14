@@ -1,6 +1,7 @@
 from constants import MAX_TOKENS, TEMPERATURE,STOP_TOKENS, OPENAI, LOCAL
 import logging
 import requests
+import os
 import json
 
 
@@ -38,6 +39,7 @@ def get_llm_output_local(system_prompt, prompt, port):
     
     output = '-'
     try:
+        logging.debug('\t Usage statistics: ' + json.dumps(r.json()['usage']))
         output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()
     except Exception as e:
         raise Exception(f'Error while accessing http://localhost:{port}/v1/chat/completions: {e}')
@@ -67,6 +69,7 @@ def get_llm_output_openai(system_prompt, prompt, model, openai_key):
     
     output = '-'
     try:
+        logging.debug('\t Usage statistics: ' + json.dumps(r.json()['usage']))
         output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()
     except Exception as e:
         raise Exception(f'Error while accessing https://api.openai.com/v1/chat/completions: {e}')
@@ -76,7 +79,8 @@ def get_llm_output_openai(system_prompt, prompt, model, openai_key):
 
 def get_llm_output(system_prompt, prompt, mode, args):
     if mode == OPENAI:
-        return get_llm_output_openai(system_prompt, prompt, args.openai_model, args.openai_key)
+        openai_key = args.openai_key if args.openai_key else os.environ[args.openai_key_env]
+        return get_llm_output_openai(system_prompt, prompt, args.openai_model, openai_key)
     elif mode == LOCAL:
         return get_llm_output_local(system_prompt, prompt, args.port)
     else:

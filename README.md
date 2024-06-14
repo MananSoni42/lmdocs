@@ -1,11 +1,11 @@
 # lmdocs: Generative AI for code documentation :brain: :arrow_right: :computer: :snake:
 
-lmdocs is a Python tool that automatically generates documentation for your code using large language models (LLMs).
+lmdocs is a Python tool that automatically generates documentation for your code using LLMs.
 
 ## Features
-* **Automatic Documentation Extraction**: Extracts and references documentation from imported libraries within your codebase
-* **LLM-Generated Comments**: Utilizes your favourite language model to generate human-readable comments, ensuring your code is well-documented and easy to understand.
-* **Codebase Preservation**: Guarantees no changes to the functionality of your codebase, only adds helpful comments.
+* **Codebase Preservation**: _Guarantees_ no changes to your code, only adds helpful comments
+* **Automatic Documentation Extraction**: Extracts and references documentation from imported libraries
+* **LLM-Generated Comments**: Utilizes your favourite LLM to generate readable comments, ensuring your code is well-documented
 
 ## lmdocs in Action :hammer:
 <table>
@@ -76,13 +76,13 @@ python lmdocs.py <project path> --port <local LLM server port>
 ```
 
 #### Setup
-To use local LLMs, you need to set up an openAI compatible server. 
-You can use local desktops apps like [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://ollama.com/blog/openai-compatibility), [GPT4All](https://docs.gpt4all.io/gpt4all_chat.html#server-mode), [llama.cpp](https://github.com/ggerganov/llama.cpp/tree/master/examples/server) to set up your server.
+To use local LLMs, you need to set up an openAI compatible server.  
+You can use local desktops apps like [LM Studio](https://lmstudio.ai/docs/local-server), [Ollama](https://ollama.com/blog/openai-compatibility), [GPT4All](https://docs.gpt4all.io/gpt4all_chat.html#server-mode), [llama.cpp](https://github.com/ggerganov/llama.cpp/tree/master/examples/server) or any other method to set up your LLM server.
 
-Although lmdocs is compatible with any local LLM, I have personally tested that it works for the following models: 
-`deepseek coder 7B`, `wizard coder v1 7B`, `llama3 7B instruct`, `mistral 7B instruct v0.1`, `mistral 7B instruct v0.2`, `mistral 7B instruct v0.3`, `phi3 mini`
+Although lmdocs is compatible with any local LLM, I have tested that it works for the following models:  
+[`deepseek-coder-6.7b-instruct`](https://huggingface.co/deepseek-ai/deepseek-coder-6.7b-instruct), [`WizardCoder-Python-7B-V1`](https://huggingface.co/TheBloke/WizardCoder-Python-7B-V1.0-GGUF), [`Meta-Llama-3-8B-Instruct`](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct), [`Mistral-7B-Instruct-v0.2`](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2), [`Phi-3-mini-4k-instruct`](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct)
 
-### Additional options
+### Additional options :gear:
 ```bash
 usage: lmdocs.py [-h] [-v] [--openai_key OPENAI_KEY] [--openai_key_env OPENAI_KEY_ENV] [--openai_model {gpt-3.5-turbo,gpt-4-turbo,gpt-4o}] [-p PORT]
                  [--max_retries MAX_RETRIES] [--ref_doc {truncate,summarize,full}]
@@ -99,12 +99,17 @@ optional arguments:
   --openai_key_env OPENAI_KEY_ENV
                         Environment variable where Open AI key is stored
   --openai_model {gpt-3.5-turbo,gpt-4-turbo,gpt-4o}
-                        Which openAI model to use. Supported models are [gpt-3.5-turbo, gpt-4-turbo, gpt-4o]. gpt-3.5-turbo is used by default
+                        Which openAI model to use. Supported models are ['gpt-3.5-turbo', 'gpt-4-turbo', 'gpt-4o']            
+                        gpt-3.5-turbo is used by default
   -p PORT, --port PORT  Port where Local LLM server is hosted
   --max_retries MAX_RETRIES
-                        Number of attempts to give the LLM to generate the documentation for each function
+                        Number of attempts that the LLM gets to generate the documentation for each function
   --ref_doc {truncate,summarize,full}
-                        How to process reference documentation. Supported choices are: [truncate / summarize / full]
+                        Strategy to process reference documentation. Supported choices are:            
+                        truncate    - Truncate documentation to the first paragraph            
+                        summarize   - Generate a single summary of the documentation using the given LLM            
+                        full        - Use the complete documentation (Can lead to very long context length)            
+                        "truncate" is used as the default strategy
 ```
 
 ## Caveats and known limitations
@@ -127,10 +132,14 @@ For external libraries (e.g numpy), the library is imported as it is from the or
 
 ## TODO
 
-- [ ] Add example of documented function in readme
 - [ ] Add reason for AST not matching
-- [ ] Improve logging + add verbose argument and logging.debug calls
 - [ ] Add support for lambdas
 
+## Contributing
+Contributions from the community are welcome. Feel free to submit feature requests and bug fixes by opening a new issue.  
+Together, we can make lmdocs even better!
+
 ## License 
-[GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)
+lmdocs is released under the [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) License  
+For personal or open-source projects, you are free to use, modify, and distribute lmdocs under the terms of the AGPLv3 license.  
+If you plan to incorporate lmdocs into a proprietary application or service, you are required to provide access to the complete source code of your application, including any modifications made to lmdocs.

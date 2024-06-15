@@ -1,6 +1,7 @@
-from python_parsers import get_all_calls, get_all_imports, parse_commented_function, same_ast, remove_docstring, replace_func
+from python_parsers import get_all_calls, get_all_imports, parse_commented_function, same_ast_with_reason, remove_docstring, replace_func
 from get_code_docs import CodeData, get_reference_docs_custom_functions, get_shortened_docs
 from prompts import SYSTEM_PROMPT, DOC_GENERATION_PROMPT
+from constants import TOK_COUNT
 from llm_inference import get_llm_output
 
 import argparse
@@ -10,6 +11,7 @@ import logging
 import ast
 import os
 import math
+from collections import Counter
 
 
 def get_args():
@@ -54,7 +56,7 @@ def get_args():
         "--max_retries",
         type=int,
         default=3,
-        help="Number of attempts that the LLM gets to generate the documentation for each function"
+        help="Number of attempts that the LLM gets to generate the documentation for each function/method/class"
     )
     
     
@@ -135,12 +137,14 @@ def get_code_dependancies_and_imports(path):
     return code_dependancies, import_stmts
 
 
-def generate_documentation_for_custom_calls(code_dependancies, mode, args):
+def generate_documentation_for_custom_calls(code_dependancies, llm_mode, args):
     custom_funcs = [func_name for func_name, func_info in code_dependancies.items() if func_info[CodeData.CUSTOM]]
 
     num_custom_funcs = len(custom_funcs)
     num_digits = math.ceil(math.log(num_custom_funcs, 10))
     logging.info(f'Generating docs for {len(custom_funcs)} custom functions/methods/classes')
+
+    total_tokens = TOK_COUNT.copy()
 
     for i in range(3):
         least_dep_func = min(custom_funcs, key=lambda x: code_dependancies.undocumented_dependancies(x))
@@ -148,22 +152,24 @@ def generate_documentation_for_custom_calls(code_dependancies, mode, args):
         
         for ri in range(args.max_retries):
             logging.debug(f'\tTry {ri+1}/{args.max_retries} for `{least_dep_func}`')
-            llm_out = get_llm_output(
+            llm_out, used_toks = get_llm_output(
                 SYSTEM_PROMPT, 
                 DOC_GENERATION_PROMPT(
                     code_dependancies[least_dep_func][CodeData.CODE], 
                     get_reference_docs_custom_functions(least_dep_func, code_dependancies)
                 ),
-                mode,
+                llm_mode,
                 args,
             )
+            total_tokens += used_toks
             
             new_func_code, new_func_node, success, reason = parse_commented_function(least_dep_func, llm_out)
             
             if not success:
                 continue
         
-            if same_ast(remove_docstring(code_dependancies[least_dep_func][CodeData.NODE]), remove_docstring(new_func_node)):
+            same, ast_reason = same_ast_with_reason(remove_docstring(code_dependancies[least_dep_func][CodeData.NODE]), remove_docstring(new_func_node))
+            if same:
                 code_dependancies.add(
                     least_dep_func,
                     {
@@ -180,7 +186,7 @@ def generate_documentation_for_custom_calls(code_dependancies, mode, args):
                 #     print('-'*10, file=f)
                 #     print(code_dependancies[least_dep_func][CodeData.CODE], file=f)
                 #     print('-'*42, file=f)
-                reason = 'Generated AST does not match original AST'
+                reason = f'AST mismatch: {ast_reason}'
         else:
             logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(num_custom_funcs).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {args.max_retries} tries')
             logging.info(f'\t\tReason: {reason}')
@@ -188,13 +194,14 @@ def generate_documentation_for_custom_calls(code_dependancies, mode, args):
         if code_dependancies[least_dep_func][CodeData.DOC] != '-':
             code_dependancies.add(
                 least_dep_func, 
-                {CodeData.DOC_SHORT: get_shortened_docs(least_dep_func, CodeData.DOC, args.ref_doc)}
+                {CodeData.DOC_SHORT: get_shortened_docs(least_dep_func, CodeData.DOC, args.ref_doc, llm_mode, args)}
             )            
 
         custom_funcs.remove(least_dep_func)
         
     custom_funcs_with_docs = [func_name for func_name, func_info in code_dependancies.items() if func_info[CodeData.CUSTOM] and func_info[CodeData.DOC] != '-']
     logging.info(f'Generated docs for {len(custom_funcs_with_docs)}/{num_custom_funcs} custom functions/classes.methods')
+    logging.info(f'Tokens used: ' + ', '.join(f'{k}: {v}' for k,v in total_tokens.items()))
     
     
 def replace_modified_functions(code_dependancies, path):

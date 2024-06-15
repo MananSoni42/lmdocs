@@ -182,6 +182,33 @@ def same_ast(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list
         return node1 == node2
 
 
+def same_ast_with_reason(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list[ast.expr]]) -> tuple[bool, str]:
+    
+    if type(node1) is not type(node2):
+        return False, f'`type of node 1: `{type(node1)}` != type of node 2: `{type(node2)}`'
+
+    if isinstance(node1, ast.AST):
+        for k, v in vars(node1).items():
+            if k in {"lineno", "end_lineno", "col_offset", "end_col_offset", "ctx"}:
+                continue
+            same, reason = same_ast_with_reason(v, getattr(node2, k))
+            if not same:
+                return False, reason
+        return True, 'Same AST'
+
+    elif isinstance(node1, list) and isinstance(node2, list):
+        for n1, n2 in zip_longest(node1, node2):
+            same, reason = same_ast_with_reason(n1, n2)
+            if not same:
+                return False, reason
+        return True, 'Same AST'
+    else:
+        if node1 == node2:
+            return True, 'Same AST'
+        else:
+            return False, f'Node 1 {type(node1)} `{node1}` != Node 2  {type(node2)} `{node2}`'
+
+
 def remove_comments_from_line(line):
     return re.sub('#+[\s]*.*\n*$', '', line)
 
@@ -199,14 +226,10 @@ def replace_func_single_line(func_name, orig_code_lines, new_code_lines, file_pa
     cleaned_flines = clean_code_lines(flines)
     
     first_line, last_line = cleaned_orig_code_lines[0][1], cleaned_orig_code_lines[-1][1]
-    # print('--->', first_line, last_line, sep='\n\t')
     
     start_ind, end_ind = -1, -1
     for (ind,fline) in cleaned_flines:        
 
-        # print('---', fline)
-        # print()
-        
         if fline == first_line:
             start_ind = ind
         if start_ind != -1 and fline == last_line:
@@ -269,11 +292,3 @@ def get_indent_from_file(path):
             if tok_type == tokenize.INDENT:
                 return tok_str
     logging.error(f'Could not find indent (tabs/spaces) from path: `{path}`')
-    
-    
-if __name__ == '__main__':
-    with open('python_parsers_copy.py') as f:
-        for i,line in enumerate(f.readlines()):
-            cleaned_line = py_clean(line)
-            if cleaned_line and line != cleaned_line:
-                print(i, repr(line), repr(cleaned_line), sep=' | ')

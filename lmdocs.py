@@ -20,10 +20,10 @@ def main():
         
     logging.info(f'Project path: {args.path}')
     
-    mode = LOCAL if args.port else OPENAI
-    logging.info(f'mode: {mode}')
-    model_name = get_local_llm_name(args.port) if mode == LOCAL else args.openai_model
-    logging.info(f'Using {mode} LLM: {model_name}')
+    llm_mode = LOCAL if args.port else OPENAI
+    logging.info(f'mode: {llm_mode}')
+    model_name = get_local_llm_name(args.port) if llm_mode == LOCAL else args.openai_model
+    logging.info(f'Using {llm_mode} LLM: {model_name}')
     
     code_dependancies, import_stmts = get_code_dependancies_and_imports(args.path)
     logging.debug(f'Found {len(code_dependancies.keys())} functions/methods/clases: ')
@@ -41,10 +41,10 @@ def main():
 
         code_dependancies.add(
             func, 
-            {CodeData.DOC_SHORT: get_shortened_docs(func, known_doc, args.ref_doc)}
+            {CodeData.DOC_SHORT: get_shortened_docs(func, known_doc, args.ref_doc, llm_mode, args)}
         )
         
-    generate_documentation_for_custom_calls(code_dependancies, mode, args)
+    generate_documentation_for_custom_calls(code_dependancies, llm_mode, args)
 
     replace_modified_functions(code_dependancies, args.path)
     

@@ -1,11 +1,13 @@
 # lmdocs: Generative AI for code documentation :brain: :arrow_right: :computer: :snake:
 
-lmdocs is a Python tool that automatically generates documentation for your code using LLMs.
+`lmdocs` automatically generates documentation for your Python code using LLMs.
 
 ## Features
 * **Codebase Preservation**: _Guarantees_ no changes to your code, only adds helpful comments
 * **Automatic Documentation Extraction**: Extracts and references documentation from imported libraries
-* **LLM-Generated Comments**: Utilizes your favourite LLM to generate readable comments, ensuring your code is well-documented
+* **LLM-Generated Comments**: Understands your code and adds a relevant docstring and inline comments
+* **No dependancies**: Written in pure Python, no dependancies on any external packages
+ *It is recommended that you install libraries specific to your project before running lmdocs
 
 ## lmdocs in Action :hammer:
 <table>
@@ -60,7 +62,7 @@ def fibonacci(n):
 </tr>
 </table>
 
-The example above was generated using the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
+The example above was generated using lmdocs with the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
 
 ## Quickstart :rocket:
 ### Using an OpenAI model
@@ -103,7 +105,7 @@ optional arguments:
                         gpt-3.5-turbo is used by default
   -p PORT, --port PORT  Port where Local LLM server is hosted
   --max_retries MAX_RETRIES
-                        Number of attempts that the LLM gets to generate the documentation for each function
+                        Number of attempts that the LLM gets to generate the documentation for each function/method/class
   --ref_doc {truncate,summarize,full}
                         Strategy to process reference documentation. Supported choices are:            
                         truncate    - Truncate documentation to the first paragraph            
@@ -112,14 +114,14 @@ optional arguments:
                         "truncate" is used as the default strategy
 ```
 
-## Caveats and known limitations
+## Caveats and limitations
 
 ### Language Support
-Currently supports only Python (3.8+)
+Only supports Python 3.0+
 
 ### Dependancy extraction
 The `ast` module is used to analyze the Abstract Syntax Tree of every Python file in the codebase.  
-Only functional and class dependancies are tracked i.e Only code written in a class or function, is tracked and documented
+Only functional and class dependancies are tracked i.e Only code written within a class, method or function, is tracked and documented
 
 ### Package Dependancies
 lmdocs is written in pure Python, it does not depend on any other packages.  
@@ -131,9 +133,12 @@ Documentation for functions which have no dependancies is not extracted from the
 For external libraries (e.g numpy), the library is imported as it is from the original code
 
 ## TODO
-
-- [ ] Add reason for AST not matching
+- [x] Add reason for AST not matching
 - [ ] Add support for lambdas
+- [ ] Add mode to install libraries if they dont exist
+- [ ] Add failure cases in reference doc extraction
+- [ ] Add how it works section (+ diagram ?)
+- [ ] Check class replacement (classs should be first)
 
 ## Contributing
 Contributions from the community are welcome. Feel free to submit feature requests and bug fixes by opening a new issue.  
@@ -142,4 +147,4 @@ Together, we can make lmdocs even better!
 ## License 
 lmdocs is released under the [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html) License  
 For personal or open-source projects, you are free to use, modify, and distribute lmdocs under the terms of the AGPLv3 license.  
-If you plan to incorporate lmdocs into a proprietary application or service, you are required to provide access to the complete source code of your application, including any modifications made to lmdocs.
+If you plan to incorporate lmdocs into a proprietary application or service, you are required to provide access to the complete source code of your application, including any modifications made.

@@ -1,4 +1,5 @@
-from constants import MAX_TOKENS, TEMPERATURE,STOP_TOKENS, OPENAI, LOCAL
+from constants import MAX_TOKENS, TEMPERATURE,STOP_TOKENS, OPENAI, LOCAL, TOK_COUNT
+from collections import Counter
 import logging
 import requests
 import os
@@ -21,39 +22,14 @@ def get_local_llm_name(port):
     
     return output
     
-    
-def get_llm_output_local(system_prompt, prompt, port):
-    r = requests.post(
-        f'http://localhost:{port}/v1/chat/completions', 
-        json={
-            "messages": [ 
-                { "role": "system", "content": system_prompt },
-                { "role": "user", "content": prompt }
-            ], 
-            "temperature": TEMPERATURE, 
-            "max_tokens": MAX_TOKENS,
-            "stream": False,
-            "stop": STOP_TOKENS,
-        }
-    )
-    
-    output = '-'
-    try:
-        logging.debug('\t Usage statistics: ' + json.dumps(r.json()['usage']))
-        output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()
-    except Exception as e:
-        raise Exception(f'Error while accessing http://localhost:{port}/v1/chat/completions: {e}')
-        
-    return clean_output(output)
 
+def get_llm_api_output(url, headers, model, system_prompt, prompt):
 
-def get_llm_output_openai(system_prompt, prompt, model, openai_key):
+    usage = TOK_COUNT.copy()
+    
     r = requests.post(
-        f'https://api.openai.com/v1/chat/completions', 
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {openai_key}",
-        },
+        url, 
+        headers=headers,
         json={
             "model": model,
             "messages": [ 
@@ -69,19 +45,28 @@ def get_llm_output_openai(system_prompt, prompt, model, openai_key):
     
     output = '-'
     try:
-        logging.debug('\t Usage statistics: ' + json.dumps(r.json()['usage']))
         output = r.json()['choices'][0]['message']['content'].lstrip('\n').strip('\n').strip()
+        usage = Counter(r.json()['usage'])
     except Exception as e:
-        raise Exception(f'Error while accessing https://api.openai.com/v1/chat/completions: {e}')
+        raise Exception(f'Error while accessing {url}: {e}')
         
-    return clean_output(output)
+    return clean_output(output), usage    
 
 
 def get_llm_output(system_prompt, prompt, mode, args):
     if mode == OPENAI:
         openai_key = args.openai_key if args.openai_key else os.environ[args.openai_key_env]
-        return get_llm_output_openai(system_prompt, prompt, args.openai_model, openai_key)
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {openai_key}",
+        }
+        model = args.openai_model
     elif mode == LOCAL:
-        return get_llm_output_local(system_prompt, prompt, args.port)
+        url = f'http://localhost:{args.port}/v1/chat/completions'
+        headers = {}
+        model = 'dummy'
     else:
-        raise Exception(f'Unknown mode: {mode} for LLM inference')
+        raise Exception(f'Unknown mode: `{mode}` for LLM inference')
+    
+    return get_llm_api_output(url, headers, model, system_prompt, prompt)

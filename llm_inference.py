@@ -23,7 +23,7 @@ def get_local_llm_name(port):
     return output
     
 
-def get_llm_api_output(url, headers, model, system_prompt, prompt):
+def get_llm_api_output(url, headers, model, system_prompt, prompt, temperature, max_tokens):
 
     usage = TOK_COUNT.copy()
     
@@ -36,8 +36,8 @@ def get_llm_api_output(url, headers, model, system_prompt, prompt):
                 { "role": "system", "content": system_prompt },
                 { "role": "user", "content": prompt },
             ], 
-            "temperature": TEMPERATURE, 
-            "max_tokens": MAX_TOKENS,
+            "temperature": temperature, 
+            "max_tokens": max_tokens,
             "stream": False,
             "stop": STOP_TOKENS,
         }
@@ -69,4 +69,4 @@ def get_llm_output(system_prompt, prompt, mode, args):
     else:
         raise Exception(f'Unknown mode: `{mode}` for LLM inference')
     
-    return get_llm_api_output(url, headers, model, system_prompt, prompt)
+    return get_llm_api_output(url, headers, model, system_prompt, prompt, args.temperature, args.max_tokens)

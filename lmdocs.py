@@ -21,7 +21,6 @@ def main():
     logging.info(f'Project path: {args.path}')
     
     llm_mode = LOCAL if args.port else OPENAI
-    logging.info(f'mode: {llm_mode}')
     model_name = get_local_llm_name(args.port) if llm_mode == LOCAL else args.openai_model
     logging.info(f'Using {llm_mode} LLM: {model_name}')
     

@@ -9,7 +9,7 @@ CALLS_TO_INGORE = {
 }
 
 MAX_TOKENS = 2048
-TEMPERATURE = 0.2
+TEMPERATURE = 0.8
 STOP_TOKENS=['<|EOT|>', '<STOP>']
 OPENAI = 'openai'
 LOCAL = 'local'

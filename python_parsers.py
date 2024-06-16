@@ -8,6 +8,8 @@ from get_code_docs import CodeData
 import logging
 import tokenize
 import copy
+import subprocess
+import sys
 
 
 def to_remove(call_str):
@@ -56,7 +58,9 @@ def get_func_calls(tree):
 
 def get_all_calls(path, code_str, funcs):    
     tree = ast.parse(code_str)
+    
     for node in tree.body:
+        
         if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
 
             extra_deps = []
@@ -73,6 +77,7 @@ def get_all_calls(path, code_str, funcs):
                                 CodeData.CUSTOM: True,
                                 CodeData.PATH: path,
                                 CodeData.CODE_INDENT: get_indent_from_file(path),
+                                CodeData.TYPE: 'method',
                             }
                         )
 
@@ -84,6 +89,7 @@ def get_all_calls(path, code_str, funcs):
                     CodeData.DEP: get_func_calls(node),
                     CodeData.CUSTOM: True,
                     CodeData.PATH: path,
+                    CodeData.TYPE: 'function' if isinstance(node, ast.FunctionDef) else 'class',
                 }
             )
 

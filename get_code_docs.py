@@ -13,6 +13,7 @@ class CodeData:
     NODE = 'node'
     CUSTOM = 'custom'
     PATH = 'path'
+    TYPE = 'code_type'
     
     def __init__(self):
         self.code_blobs = {}
@@ -26,6 +27,7 @@ class CodeData:
             CodeData.CUSTOM: False,
             CodeData.PATH: '-',
             CodeData.CODE_INDENT: '',
+            CodeData.TYPE: '??',
         }
         
     def __getitem__(self, name):
@@ -65,9 +67,19 @@ class CodeData:
         return self.code_blobs.values()
     
     def __str__(self):
+        
+        custom_funcs = [(func, func_info) for func,func_info in self.code_blobs.items() if func_info[CodeData.CUSTOM]]
+        ref_funcs = [(func, func_info) for func,func_info in self.code_blobs.items() if not func_info[CodeData.CUSTOM]]
+        
         out_str = ''
-        for func,func_info in self.code_blobs.items():
-            out_str += f'Code Block: {func} (Custom: {func_info[CodeData.CUSTOM]}), Dependancies: {self.dependancies(func)}, Documented Dependancies: {self.documented_dependancies(func)}\n'
+        out_str += f'Custom ({len(custom_funcs)}):\n'
+        out_str += '-'*12 + '\n'
+        for func,func_info in custom_funcs:
+            out_str += f'{func_info[CodeData.TYPE]:<10}: `{func}` Dependancies: {self.dependancies(func)}, Documented Dependancies: {self.documented_dependancies(func)}\n'
+        out_str += f'\nReference ({len(ref_funcs)}):\n'
+        out_str += '-'*15 + '\n'
+        out_str += ', '.join([f'`{func}`' for func,_ in ref_funcs]) + '\n'
+
         return out_str
 
     def __repr__(self):

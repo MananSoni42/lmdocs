@@ -51,15 +51,7 @@ def get_args():
         type=int,
         help="Port where Local LLM server is hosted"
     )
-
-    parser.add_argument(
-        "--max_retries",
-        type=int,
-        default=3,
-        help="Number of attempts that the LLM gets to generate the documentation for each function/method/class"
-    )
-    
-    
+        
     parser.add_argument(
         "--ref_doc",
         choices=['truncate', 'summarize', 'full'],
@@ -70,7 +62,28 @@ def get_args():
             \nfull        - Use the complete documentation (Can lead to very long context length)\
             \n\"truncate\" is used as the default strategy"
     )
-        
+    
+    parser.add_argument(
+        "--max_retries",
+        type=int,
+        default=3,
+        help="Number of attempts that the LLM gets to generate the documentation for each function/method/class"
+    )
+    
+    parser.add_argument(
+        "--temperature",
+        type=int,
+        default=0.8,
+        help="Temperature parameter used to sample output from the LLM"
+    )
+    
+    parser.add_argument(
+        "--max_tokens",
+        type=int,
+        default=2048,
+        help="Maximum number of tokens that the LLM is allowed to generate"
+    )
+
     args = parser.parse_args()
     verify_args(args)
     
@@ -146,7 +159,7 @@ def generate_documentation_for_custom_calls(code_dependancies, llm_mode, args):
 
     total_tokens = TOK_COUNT.copy()
 
-    for i in range(3):
+    for i in range(num_custom_funcs):
         least_dep_func = min(custom_funcs, key=lambda x: code_dependancies.undocumented_dependancies(x))
         reason = None
         
@@ -218,7 +231,11 @@ def replace_modified_functions(code_dependancies, path):
                         file_str = f.read()
                         
                     changed = False
-                    for func in custom_funcs_with_docs:
+                    path_funcs = sorted(
+                        [func for func in custom_funcs_with_docs if code_dependancies[func][CodeData.PATH] == path]
+                        , key = lambda x: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0
+                    )
+                    for func in path_funcs:
                         if code_dependancies[func][CodeData.PATH] == path:
                             changed = True
                             file_str = replace_func(
@@ -257,4 +274,4 @@ def replace_modified_functions(code_dependancies, path):
                 f.write(file_str)
         
     else:
-        raise Exception(f'Could not parse path: `{path}`')    
+        raise Exception(f'Could not parse path: `{path}`')

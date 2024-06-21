@@ -1,24 +1,19 @@
 # lmdocs: Generative AI for code documentation :brain: :arrow_right: :computer: :snake:
-
 `lmdocs` automatically generates documentation for your Python code using LLMs.
+
+( [Features](#features) | [Examples](#lmdocs-in-action-hammer) | [Quickstart :rocket:](#quickstart-rocket) | [How it works](#how-it-works) | [Additional options :gear:](#additional-options-gear) | [Caveats and limitations](#caveats-and-limitations) )
 
 ## Features
 * **Codebase Preservation**: _Guarantees_ no changes to your code, only adds helpful comments
 * **Automatic Documentation Extraction**: Extracts and references documentation from imported libraries
 * **LLM-Generated Comments**: Understands your code and adds a relevant docstring and inline comments
 * **No dependancies**: Written in pure Python, no dependancies on any external packages
- *It is recommended that you install libraries specific to your project before running lmdocs
+ *It is recommended that you install libraries specific to your project before running
 
 ## lmdocs in Action :hammer:
-<table>
-<tr>
-<th> Before </th>
-<th> After </th>
-</tr>
-<tr>
-<td>
 
 ```python
+# Original function
 def fibonacci(n):
     a, b = 0, 1
     fib_seq = []
@@ -26,12 +21,8 @@ def fibonacci(n):
         fib_seq.append(a)
         a, b = b, a + b
     return fib_seq
-```
 
-</td>
-<td>
-
-```python
+# Commented using lmdocs
 def fibonacci(n):
     """
     Generates the Fibonacci sequence up to n terms.
@@ -58,12 +49,8 @@ def fibonacci(n):
     return fib_seq # Return the generated Fibonacci sequence
 ```
 
-</td>
-</tr>
-<tr>
-<td>
-
 ```python
+# Original function
 def k_means(X, k, max_iter=300, tol=1e-4, random_state=None):
     np.random.seed(random_state)
     centroids = X[np.random.choice(X.shape[0], k, replace=False), :]
@@ -79,12 +66,8 @@ def k_means(X, k, max_iter=300, tol=1e-4, random_state=None):
         centroids = new_centroids
         
     return cluster_assignments, centroids
-```
 
-</td>
-<td>
-
-```python
+# Commented using lmdocs
 def k_means(X, k, max_iter=300, tol=1e-4, random_state=None):
     '''
     Perform K-Means clustering. 
@@ -138,11 +121,7 @@ def k_means(X, k, max_iter=300, tol=1e-4, random_state=None):
     return cluster_assignments, centroids
 ```
 
-</td>
-</tr>
-</table>
-
-The example above was generated locally using lmdocs with the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
+The examples above were generated locally using lmdocs with the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
 
 ## Quickstart :rocket:
 ### Using an OpenAI model
@@ -172,10 +151,13 @@ Gather all Python files from the project directory and identify all function, cl
 Map out the dependencies between the identified calls to create a dependency graph of the entire codebase
 
 **Step 3: Retrieve and Generate Documentation**  
-For calls with no dependencies, retrieve existing documentation. For calls with dependencies, create a prompt that includes the original code and reference documentation for its dependencies, then send the prompt to the LLM server (local or OpenAI) to generate the documented code.
+For calls with no dependencies, retrieve existing documentation using their `__doc__` attribute  
+For calls with dependents, prompt the LLM to generate documented code, providing the original code and reference documentation for its dependencies in the prompt  
 
 **Step 4: Verify and Replace Code**  
-Compare the Abstract Syntax Tree (AST) of the original and generated code. If they match, replace the original code with the documented code. If they don't match, retry the generation and verification process up to three times.
+Compare the Abstract Syntax Tree (AST) of the original and generated code  
+If they match, replace the original code with the documented code  
+If they don't match, retry the generation and verification process (up to three times)  
 
 ### Additional options :gear:
 ```bash

@@ -11,7 +11,7 @@ import logging
 import ast
 import os
 import math
-from collections import Counter
+import re
 
 
 def get_args():
@@ -116,6 +116,8 @@ def generate_report(code_deps, report_path):
     pd.DataFrame(data).to_csv(report_path, index=False)
 
 
+is_hidden_dir = lambda path: any([dir.startswith('.') for dir in path.split('/')])
+
 def get_code_dependancies_and_imports(path):
     import_stmts = []
     code_dependancies = CodeData()
@@ -123,15 +125,15 @@ def get_code_dependancies_and_imports(path):
     if os.path.isdir(path):
         for root, _, files in os.walk(path):
             for file in files:
-                if os.path.splitext(file)[-1] == '.py':
-                    path = os.path.join(root, file)
-                    logging.info(f'Extracting dependancies from {path}')
+                fpath = os.path.join(root, file)
+                if not is_hidden_dir(fpath.replace(path,"")) and os.path.splitext(file)[-1] == '.py':                    
+                    logging.info(f'Extracting dependancies from {fpath}')
                     
-                    with open(path) as f:    
+                    with open(fpath) as f:    
                         code_str = f.read()
                         
                     import_stmts.extend(get_all_imports(code_str)[2])
-                    get_all_calls(path, code_str, code_dependancies)
+                    get_all_calls(fpath, code_str, code_dependancies)
                     
     elif os.path.splitext(path)[-1] == '.py':
         logging.info(f'Extracting dependancies from {path}')
@@ -223,17 +225,17 @@ def replace_modified_functions(code_dependancies, path):
     if os.path.isdir(path):
         for root, _, files in os.walk(path):
             for file in files:
-                if os.path.splitext(file)[-1] == '.py':
-                    path = os.path.join(root, file)
-                    logging.info(f'Replacing functions in {path}')
+                if not is_hidden_dir(fpath.replace(path,"")) and os.path.splitext(file)[-1] == '.py':                    
+                    fpath = os.path.join(root, file)
+                    logging.info(f'Replacing functions in {fpath}')
                     
-                    with open(path) as f:    
+                    with open(fpath) as f:    
                         file_str = f.read()
                         
                     changed = False
                     path_funcs = sorted(
                         [func for func in custom_funcs_with_docs if code_dependancies[func][CodeData.PATH] == path]
-                        , key = lambda x: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0
+                        , key = lambda func: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0
                     )
                     for func in path_funcs:
                         if code_dependancies[func][CodeData.PATH] == path:
@@ -242,12 +244,12 @@ def replace_modified_functions(code_dependancies, path):
                                             func, 
                                             code_dependancies[func][CodeData.CODE], 
                                             code_dependancies[func][CodeData.CODE_NEW], 
-                                            path,
+                                            fpath,
                                             file_str
                                         )
                             
                     if changed:
-                        with open(path, 'w') as f:
+                        with open(fpath, 'w') as f:
                             f.write(file_str)
                     
     elif os.path.splitext(path)[-1] == '.py':

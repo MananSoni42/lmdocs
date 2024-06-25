@@ -2,7 +2,7 @@ def format_docs(ref_docs):
     return '\n\n'.join(f'Function: {ref_doc["function"]}\nDocumentation: {ref_doc["doc_str"]}' for ref_doc in ref_docs)
 
 
-SYSTEM_PROMPT = 'You are an intellighent AI programming assistant. You are fluent in Python and only answer questions related to Computer Science'
+SYSTEM_PROMPT = 'You are an intelligent AI programming assistant. You are fluent in Python and only answer questions related to Computer Science'
 
 INSTRUCTIONS = '''\
 - Generate documentation for the python function/class given below.

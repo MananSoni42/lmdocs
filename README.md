@@ -12,6 +12,9 @@
 
 ## lmdocs in Action :hammer:
 
+<details open>
+<summary>Example 1 - Fibonacci numbers</summary>
+
 ```python
 # Original function
 def fibonacci(n):
@@ -48,6 +51,11 @@ def fibonacci(n):
     
     return fib_seq # Return the generated Fibonacci sequence
 ```
+
+</details>
+
+<details>
+<summary>Example 2 - K means</summary>
 
 ```python
 # Original function
@@ -120,6 +128,8 @@ def k_means(X, k, max_iter=300, tol=1e-4, random_state=None):
     
     return cluster_assignments, centroids
 ```
+
+</details>
 
 The examples above were generated locally using lmdocs with the [DeepSeek coder 6.7B](https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF) model.
 

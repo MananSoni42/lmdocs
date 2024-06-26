@@ -195,12 +195,12 @@ def generate_documentation_for_custom_calls(code_dependancies, llm_mode, args):
                 logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(num_custom_funcs).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{args.max_retries} tries')      
                 break
             else:
-                # with open('debug.func.log', 'a') as f:
-                #     print(f'func: {least_dep_func} | try: {ri}', file=f)
-                #     print(new_func_code, file=f)
-                #     print('-'*10, file=f)
-                #     print(code_dependancies[least_dep_func][CodeData.CODE], file=f)
-                #     print('-'*42, file=f)
+                with open('debug.func.log2', 'a') as f:
+                    print(f'func: {least_dep_func} | try: {ri}', file=f)
+                    print(new_func_code, file=f)
+                    print('-'*10, file=f)
+                    print(code_dependancies[least_dep_func][CodeData.CODE], file=f)
+                    print('-'*42, file=f)
                 reason = f'AST mismatch: {ast_reason}'
         else:
             logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(num_custom_funcs).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {args.max_retries} tries')
@@ -225,8 +225,8 @@ def replace_modified_functions(code_dependancies, path):
     if os.path.isdir(path):
         for root, _, files in os.walk(path):
             for file in files:
+                fpath = os.path.join(root, file)                
                 if not is_hidden_dir(fpath.replace(path,"")) and os.path.splitext(file)[-1] == '.py':                    
-                    fpath = os.path.join(root, file)
                     logging.info(f'Replacing functions in {fpath}')
                     
                     with open(fpath) as f:    
@@ -234,23 +234,21 @@ def replace_modified_functions(code_dependancies, path):
                         
                     changed = False
                     path_funcs = sorted(
-                        [func for func in custom_funcs_with_docs if code_dependancies[func][CodeData.PATH] == path]
+                        [func for func in custom_funcs_with_docs if code_dependancies[func][CodeData.PATH] == fpath]
                         , key = lambda func: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0
                     )
                     for func in path_funcs:
-                        if code_dependancies[func][CodeData.PATH] == path:
-                            changed = True
-                            file_str = replace_func(
-                                            func, 
-                                            code_dependancies[func][CodeData.CODE], 
-                                            code_dependancies[func][CodeData.CODE_NEW], 
-                                            fpath,
-                                            file_str
-                                        )
+                        logging.info(f'\tReplacing func: `{func}`')
+                        file_str = replace_func(
+                                        func, 
+                                        code_dependancies[func][CodeData.CODE], 
+                                        code_dependancies[func][CodeData.CODE_NEW], 
+                                        fpath,
+                                        file_str
+                                    )
                             
-                    if changed:
-                        with open(fpath, 'w') as f:
-                            f.write(file_str)
+                    with open(fpath, 'w') as f:
+                        f.write(file_str)
                     
     elif os.path.splitext(path)[-1] == '.py':
         

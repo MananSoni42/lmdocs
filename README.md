@@ -12,7 +12,7 @@
 
 ## lmdocs in Action :hammer:
 
-<details open>
+<details>
 <summary>Example 1 - Fibonacci numbers</summary>
 
 ```python

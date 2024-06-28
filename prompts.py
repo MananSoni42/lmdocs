@@ -19,6 +19,7 @@ INSTRUCTIONS = '''\
     - Only write such comments for each block of code, not for every line
 - You also have access to reference documentation for sub-functions and sub-classes used in the original class, method, or function. These should be used for enhanced context for better documentation.
 - Preserve all existing documentation given in the original class, method, or function.
+- For a class, only generate a docstring for the whole class, do not add any comments for the class methods
 - Do not change the code, name or existing comments of the original class, method, or function, only add comments wherever necessary.
 - Do not add any import statements
 - Only reply with the documented class, method, or function within ``` tags followed by the stop token: <STOP>'''

@@ -50,5 +50,6 @@ def main():
     generate_report(code_dependancies, f'doc_report_{args.path.split("/")[-1]}.csv')
     logging.info(f'Saved Documentation report in ./doc_report_{args.path.split("/")[-1]}.csv')
 
+
 if __name__ == '__main__':
     main()

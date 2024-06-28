@@ -195,12 +195,6 @@ def generate_documentation_for_custom_calls(code_dependancies, llm_mode, args):
                 logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(num_custom_funcs).zfill(num_digits)}] Generated docs for `{least_dep_func}` in {ri+1}/{args.max_retries} tries')      
                 break
             else:
-                with open('debug.func.log2', 'a') as f:
-                    print(f'func: {least_dep_func} | try: {ri}', file=f)
-                    print(new_func_code, file=f)
-                    print('-'*10, file=f)
-                    print(code_dependancies[least_dep_func][CodeData.CODE], file=f)
-                    print('-'*42, file=f)
                 reason = f'AST mismatch: {ast_reason}'
         else:
             logging.info(f'\t[{str(i+1).zfill(num_digits)}/{str(num_custom_funcs).zfill(num_digits)}] Could not generate docs for `{least_dep_func}` after {args.max_retries} tries')
@@ -228,7 +222,6 @@ def replace_modified_functions(code_dependancies, path):
         with open(fpath) as f:    
             file_str = f.read()
         
-        logging.info(f'\tReplacing func: `{func}`')
         file_str = replace_func(
                         func, 
                         code_dependancies[func][CodeData.CODE], 

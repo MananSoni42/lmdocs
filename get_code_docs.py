@@ -41,7 +41,7 @@ class CodeData:
             if k == CodeData.DEP:
                 self.code_blobs[name][k] = self.code_blobs[name].get(k, []) + v
                 for func in v:
-                    self.add(func, {CodeData.DEP: [], CodeData.PATH: data.get(CodeData.PATH, '-')})
+                    self.add(func, {CodeData.DEP: []})
             else:
                 self.code_blobs[name][k] = v
                  

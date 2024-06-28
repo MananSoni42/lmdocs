@@ -62,7 +62,7 @@ def get_all_calls(path, code_str, funcs):
     for node in tree.body:
         
         if isinstance(node, ast.FunctionDef) or isinstance(node, ast.ClassDef):
-
+            
             extra_deps = []
             if isinstance(node, ast.ClassDef):
                 for child_node in node.body:
@@ -188,23 +188,26 @@ def same_ast(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list
         return node1 == node2
 
 
-def same_ast_with_reason(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list[ast.expr]]) -> tuple[bool, str]:
+def same_ast_with_reason(node1: Union[ast.expr, list[ast.expr]], node2: Union[ast.expr, list[ast.expr]], parent=None) -> tuple[bool, str]:
     
     if type(node1) is not type(node2):
-        return False, f'`type of node 1: `{type(node1)}` != type of node 2: `{type(node2)}`'
-
+        if parent:
+            return False, f'`[TYPE] `{type(parent)}.{type(node1)}` != `{type(parent)}.{type(node2)}`'
+        else:
+            return False, f'`[TYPE] `{type(node1)}` != `{type(node2)}`'
+        
     if isinstance(node1, ast.AST):
         for k, v in vars(node1).items():
             if k in {"lineno", "end_lineno", "col_offset", "end_col_offset", "ctx"}:
                 continue
-            same, reason = same_ast_with_reason(v, getattr(node2, k))
+            same, reason = same_ast_with_reason(v, getattr(node2, k), node2)
             if not same:
                 return False, reason
         return True, 'Same AST'
 
     elif isinstance(node1, list) and isinstance(node2, list):
         for n1, n2 in zip_longest(node1, node2):
-            same, reason = same_ast_with_reason(n1, n2)
+            same, reason = same_ast_with_reason(n1, n2, node2)
             if not same:
                 return False, reason
         return True, 'Same AST'
@@ -212,8 +215,10 @@ def same_ast_with_reason(node1: Union[ast.expr, list[ast.expr]], node2: Union[as
         if node1 == node2:
             return True, 'Same AST'
         else:
-            return False, f'Node 1 {type(node1)} `{node1}` != Node 2  {type(node2)} `{node2}`'
-
+            if parent:
+                return False, f'[NODE] `{type(parent)}.{type(node1)}` (`{node1}`) != `{type(parent)}.{type(node2)}` (`{node2}`)'
+            else:
+                return False, f'[NODE] `{type(node1)}` (`{node1}`) != `{type(node2)}` (`{node2}`)'
 
 def remove_comments_from_line(line):
     return re.sub('#+[\s]*.*\n*$', '', line)
@@ -297,4 +302,4 @@ def get_indent_from_file(path):
         for (tok_type, tok_str, _, _, _) in tokenize.generate_tokens(f.readline):
             if tok_type == tokenize.INDENT:
                 return tok_str
-    logging.error(f'Could not find indent (tabs/spaces) from path: `{path}`')
+    logging.error(f'Could not find indent (tabs/spaces) from path: `{path}`') 

@@ -1,4 +1,16 @@
 def format_docs(ref_docs):
+    """
+    Formats a list of reference documentation into a structured string.
+
+    Input:
+    ref_docs (list of dict): List of dictionaries, each containing 'function' and 'doc_str' keys
+
+    Returns:
+    str: Formatted string combining function names and their corresponding documentation
+
+    Raises:
+    None
+    """
     return '\n\n'.join(f'Function: {ref_doc["function"]}\nDocumentation: {ref_doc["doc_str"]}' for ref_doc in ref_docs)
 
 

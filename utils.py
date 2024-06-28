@@ -221,57 +221,21 @@ def generate_documentation_for_custom_calls(code_dependancies, llm_mode, args):
     
 def replace_modified_functions(code_dependancies, path):
     custom_funcs_with_docs = [func_name for func_name, func_info in code_dependancies.items() if func_info[CodeData.CUSTOM] and func_info[CodeData.DOC] != '-']
+    custom_funcs_with_docs = sorted(custom_funcs_with_docs, key = lambda func: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0)    
     
-    if os.path.isdir(path):
-        for root, _, files in os.walk(path):
-            for file in files:
-                fpath = os.path.join(root, file)                
-                if not is_hidden_dir(fpath.replace(path,"")) and os.path.splitext(file)[-1] == '.py':                    
-                    logging.info(f'Replacing functions in {fpath}')
-                    
-                    with open(fpath) as f:    
-                        file_str = f.read()
-                        
-                    changed = False
-                    path_funcs = sorted(
-                        [func for func in custom_funcs_with_docs if code_dependancies[func][CodeData.PATH] == fpath]
-                        , key = lambda func: 1 if code_dependancies[func][CodeData.TYPE] == 'class' else 0
-                    )
-                    for func in path_funcs:
-                        logging.info(f'\tReplacing func: `{func}`')
-                        file_str = replace_func(
-                                        func, 
-                                        code_dependancies[func][CodeData.CODE], 
-                                        code_dependancies[func][CodeData.CODE_NEW], 
-                                        fpath,
-                                        file_str
-                                    )
-                            
-                    with open(fpath, 'w') as f:
-                        f.write(file_str)
-                    
-    elif os.path.splitext(path)[-1] == '.py':
-        
-        logging.info(f'Replacing functions in {path}')
-        
-        with open(path) as f:    
+    for func in custom_funcs_with_docs: 
+        fpath = code_dependancies[func][CodeData.PATH]
+        with open(fpath) as f:    
             file_str = f.read()
         
-        changed = False
-        for func in custom_funcs_with_docs:
-            if code_dependancies[func][CodeData.PATH] == path:
-                changed = True
-                file_str = replace_func(
-                                func, 
-                                code_dependancies[func][CodeData.CODE], 
-                                code_dependancies[func][CodeData.CODE_NEW], 
-                                path,
-                                file_str
-                            )
-                
-        if changed:
-            with open(path, 'w') as f:
-                f.write(file_str)
-        
-    else:
-        raise Exception(f'Could not parse path: `{path}`')
+        logging.info(f'\tReplacing func: `{func}`')
+        file_str = replace_func(
+                        func, 
+                        code_dependancies[func][CodeData.CODE], 
+                        code_dependancies[func][CodeData.CODE_NEW], 
+                        fpath,
+                        file_str
+                    )
+
+        with open(fpath, 'w') as f:
+            f.write(file_str)
